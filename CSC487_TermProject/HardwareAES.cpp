@@ -12,10 +12,23 @@ HardwareAES::~HardwareAES()
 
 void HardwareAES::Encrypt(unsigned char* userkey, string message)
 {
-	char* key = new char(sizeof(userkey));
+	char key[16];
+	unsigned char* pt = (unsigned char*)"This is a message we will encrypt with AES!";
 	
 	KeyExpansion(userkey, (unsigned char*)key);
-	EncryptAES(message.data, ciphertext, message.length(), key, 10);
+	EncryptAES(pt, ciphertext, message.length(), key, 10);
+
+	for (int i = 0; i < message.length(); i++)
+	{
+		cout << hex << uppercase << (int)ciphertext[i] << endl;
+	}
+
+	DecryptAES(ciphertext, plaintext, message.length(), key, 10);
+
+	for (int i = 0; i < message.length(); i++)
+	{
+		//cout << plaintext[i] << endl;
+	}
 }
 
 void HardwareAES::Decrypt()
