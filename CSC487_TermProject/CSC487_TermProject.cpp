@@ -26,6 +26,7 @@ int main()
 {
 	string message = "This is a message we will encrypt with AES!";
 
+	// TODO: Intel DRNG
 	unsigned char key[NUM_BYTES] =
 	{
 		1,2,3,4,
@@ -36,18 +37,21 @@ int main()
 
 	PadMessage(message);
 
-	//char* msg = new char(message.length() + 1);
-	//strcpy(msg, message.c_str());
-	unsigned char msg[] = "This is a message we will encrypt with AES!     ";
+	// Do some string copying stuff because I am stupid
+	unsigned char* msg = new unsigned char(message.length() + 1);
+	// strncpy((char*)msg, message.c_str(), sizeof(msg));
+	message.copy((char*)msg, message.length() + 1);
 
+	// Run Encryption on blocks
 	for (int i = 0; i < message.size(); i += 16)
 	{
-		EncryptAES(msg + i, key);
+		EncryptAES((unsigned char*)msg + i, key);
 	}
 
+	// Print out cipher text to the console
 	for (int i = 0; i < message.length(); i++)
 	{
-		cout << hex << (unsigned int)msg[i] << endl;
+		cout << hex << uppercase << (int)msg[i] << " ";
 	}
 
 	return 0;
@@ -89,7 +93,7 @@ void EncryptAES(unsigned char* message, unsigned char* key)
 	}
 }
 
-void KeyExpansion(unsigned char inputKey[16], unsigned char expandedKeys[176])
+void KeyExpansion(unsigned char* inputKey, unsigned char* expandedKeys)
 {
 	int bytesGenerated = 16;
 	int rconIteration = 1;
@@ -130,12 +134,6 @@ void KeyExpansionCore(unsigned char* in, unsigned char i)
 	// Rotate Left
 	unsigned int* q = (unsigned int*)in;
 	*q = (*q >> 8) | ((*q & 0xff) << 24);
-
-	/*unsigned char t = in[0];
-	in[0] = in[1];
-	in[1] = in[2];
-	in[2] = in[3];
-	in[3] = t;*/
 
 	// SBOX
 	in[0] = s[in[0]];
