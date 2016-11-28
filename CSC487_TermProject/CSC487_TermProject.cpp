@@ -16,7 +16,7 @@ using namespace std;
 
 int main()
 {
-	string message = "This is a message we will encrypt with AES!     ";
+	string message = "This is a message we will encrypt with AES!.....";
 
 	// Control For testing purposes
 	unsigned char key[16] =
@@ -27,7 +27,7 @@ int main()
 		13,14,15,16,
 	};
 
-	unsigned char* testKey;;
+	unsigned char* testKey;
 	unsigned char* testKey2;
 
 	unsigned char gKey[16];
@@ -47,7 +47,7 @@ int main()
 	hwtest->Encrypt(key, message);
 	swtest->Encrypt(key, message);
 
-	testKey = hwtest->GetKey();
+	/*testKey = hwtest->GetKey();
 	testKey2 = swtest->GetKey();
 	cout << endl;
 	cout << endl;
@@ -56,7 +56,7 @@ int main()
 	for (int i = 0; i < 176; i++)
 	{
 		cout << hex << (int)testKey[i] << " " << (int)testKey2[i] << endl;
-	}
+	}*/
 
 	return 0;
 }

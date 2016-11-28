@@ -1,29 +1,55 @@
+//-------------------------------------------------------------------------//
+// HardwareAES.cpp                                                         //
+// Author:  Robert House 
+//          28 NOV 2016                                                    //
+//-------------------------------------------------------------------------//
+// [CLASS NAME]: [SUMMATION OF CLASS FUNCTIONALITY]                        //
+//                                                                         //
+//	 -- [HIGHLIGHT OF FUNCTIONALITY 1]                                     //
+//	 -- [HIGHLIGHT OF FUNCTIONALITY 2]                                     //
+//	 -- [HIGHLIGHT OF FUNCTIONALITY 3]                                     //
+//                                                                         //
+// Assumptions:                                                            //
+//   -- >> [ASSUMPTION 1]                                                  //
+//-------------------------------------------------------------------------//
+
 #include "HardwareAES.h"
 
 HardwareAES::HardwareAES()
 {
-
+	// Nothing here for now
 }
 
 HardwareAES::~HardwareAES()
 {
-
+	// Nothing to destruct
 }
 
+//------------------------------[Copy]-------------------------------------
+// [DESCRIPTION]
+//
+// Inputs:    [INPUT 1] -- [DESCRIPTION]
 void HardwareAES::Encrypt(unsigned char* userkey, string message)
 {
 	int numR = 10;
 	unsigned char key[176];
-	char* msg = "This is a message we will encrypt with AES!     ";;
-	unsigned char out[48];
-	unsigned char pt[48];
+
+    // Do some string copying stuff because I am stupid
+    unsigned char plaintext[MAX_DATA_SIZE];
+    unsigned char ciphertext[MAX_DATA_SIZE];
+    unsigned char dPlainText[MAX_DATA_SIZE];
+
+    strncpy((char*)(plaintext), message.c_str(), sizeof(plaintext));
+    plaintext[sizeof(plaintext) - 1] = 0;
 	
 	KeyExpansion(userkey, key);
-	EncryptAES((unsigned char*)msg, out, message.length(), key, numR);
+	EncryptAES(plaintext, ciphertext, message.length(), key, numR);
 
 	for (int i = 0; i < message.length(); i++)
 	{
-		cout << hex << uppercase << (int)out[i] << " ";
+        printf("%2X", ciphertext[i]);
+        cout << " ";
+       // cout << hex << uppercase << (unsigned int)ciphertext[i] << " ";
 	}
 
 	for (int i = 0; i < 176; i++)
@@ -33,31 +59,17 @@ void HardwareAES::Encrypt(unsigned char* userkey, string message)
 
 	cout << endl;
 
-	DecryptAES(out, pt, message.length(), key, numR);
+	DecryptAES(ciphertext, dPlainText, message.length(), key, numR);
 
 	for (int i = 0; i < message.length(); i++)
 	{
-		cout << (unsigned char)pt[i] << " ";
+		cout << (unsigned char)dPlainText[i] << " ";
 	}
 }
 
-void HardwareAES::Decrypt()
+void HardwareAES::Decrypt(unsigned char* userkey, string ciphertext)
 {
 
-}
-
-__m128i HardwareAES::AES_128_ASSIST(__m128i temp1, __m128i temp2)
-{
-	__m128i temp3;
-	temp2 = _mm_shuffle_epi32(temp2, 0xff);
-	temp3 = _mm_slli_si128(temp1, 0x4);
-	temp1 = _mm_xor_si128(temp1, temp3);
-	temp3 = _mm_slli_si128(temp3, 0x4);
-	temp1 = _mm_xor_si128(temp1, temp3);
-	temp3 = _mm_slli_si128(temp3, 0x4);
-	temp1 = _mm_xor_si128(temp1, temp3);
-	temp1 = _mm_xor_si128(temp1, temp2);
-	return temp1;
 }
 
 void HardwareAES::KeyExpansion(const unsigned char* userkey, unsigned char* key)
@@ -195,4 +207,19 @@ void HardwareAES::DecryptAES(const unsigned char* in, unsigned char* out,
 		// Write out block. PHEW, DONE!
 		_mm_storeu_si128(&((__m128i*)out)[i], temp);
 	}
+}
+
+
+__m128i HardwareAES::AES_128_ASSIST(__m128i temp1, __m128i temp2)
+{
+    __m128i temp3;
+    temp2 = _mm_shuffle_epi32(temp2, 0xff);
+    temp3 = _mm_slli_si128(temp1, 0x4);
+    temp1 = _mm_xor_si128(temp1, temp3);
+    temp3 = _mm_slli_si128(temp3, 0x4);
+    temp1 = _mm_xor_si128(temp1, temp3);
+    temp3 = _mm_slli_si128(temp3, 0x4);
+    temp1 = _mm_xor_si128(temp1, temp3);
+    temp1 = _mm_xor_si128(temp1, temp2);
+    return temp1;
 }

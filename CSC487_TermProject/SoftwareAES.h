@@ -16,6 +16,8 @@ public:
 	void Decrypt(unsigned char* userkey, string message);
 	unsigned char* GetKey() { return _key; };
 
+    static const int MAX_DATA_SIZE = 8192; // ~8k
+
 private:
 	static const int BLOCK_SIZE = 16;
 
