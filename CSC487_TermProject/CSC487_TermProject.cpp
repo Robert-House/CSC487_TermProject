@@ -16,7 +16,7 @@ using namespace std;
 
 int main()
 {
-	string message = "This is a message we will encrypt with AES!.....";
+	string message = "This is a message we will encrypt with AES!     ";
 
 	// Control For testing purposes
 	unsigned char key[16] =

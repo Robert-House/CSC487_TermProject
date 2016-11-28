@@ -45,12 +45,20 @@ void HardwareAES::Encrypt(unsigned char* userkey, string message)
 	KeyExpansion(userkey, key);
 	EncryptAES(plaintext, ciphertext, message.length(), key, numR);
 
-	for (int i = 0; i < message.length(); i++)
-	{
-        printf("%2X", ciphertext[i]);
-        cout << " ";
-       // cout << hex << uppercase << (unsigned int)ciphertext[i] << " ";
-	}
+    // Print out cipher text to the console
+    int lineCount = 1;
+    cout << " " << hex << uppercase << (int)ciphertext[0];
+    for (int i = 1; i < message.length(); i++)
+    {
+        printf(" %02X", ciphertext[i]);
+        lineCount++;
+        //cout << hex << uppercase << (int)plaintext[i] << " ";
+        if (lineCount == 16)
+        {
+            cout << endl;
+            lineCount = 0;
+        }
+    }
 
 	for (int i = 0; i < 176; i++)
 	{
@@ -63,7 +71,7 @@ void HardwareAES::Encrypt(unsigned char* userkey, string message)
 
 	for (int i = 0; i < message.length(); i++)
 	{
-		cout << (unsigned char)dPlainText[i] << " ";
+		cout << dPlainText[i] << " ";
 	}
 }
 
@@ -149,18 +157,19 @@ void HardwareAES::EncryptAES(const unsigned char* in, unsigned char* out,
 		// DO XOR
 		temp = _mm_xor_si128(temp, tKey);
 
-		// Rounds 2-10
+		// Rounds 2-9
 		for (j = 1; j < numRounds; j++)
 		{
 			tKey = _mm_loadu_si128(&((__m128i*)key)[j]);
 			temp = _mm_aesenc_si128(temp, tKey);
-			//temp = _mm_aesenc_si128(temp, ((__m128i*)key)[j]);
 		}
 
 		// Last round
 		tKey = _mm_loadu_si128(&((__m128i*)key)[j]);
 		temp = _mm_aesenclast_si128(temp, tKey);
-		_mm_storeu_si128(&((__m128i*)out)[i], temp); // Write ciphertext
+
+        // Write ciphertext
+		_mm_storeu_si128(&((__m128i*)out)[i], temp);
 	}
 }
 

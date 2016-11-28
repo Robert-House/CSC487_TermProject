@@ -12,22 +12,29 @@ SoftwareAES::~SoftwareAES()
 
 void SoftwareAES::Encrypt(unsigned char * userkey, string message)
 {
-	string plaintext = message;
-	PadMessage(plaintext);
+	PadMessage(message);
 	unsigned char block[16];
+    unsigned char expandedKey[176];
 
-	// Do some string copying stuff because I am stupid
-	//unsigned char* msg = new unsigned char(plaintext.length() + 1);
-	// strncpy((char*)msg, message.c_str(), sizeof(msg));
-	//plaintext.copy((char*)msg, plaintext.length() + 1);
+    // Copy string to plaintext block to properly cast to unsigned char
+    unsigned char plaintext[MAX_DATA_SIZE];
+    strncpy((char*)(plaintext), message.c_str(), sizeof(plaintext));
+    plaintext[sizeof(plaintext) - 1] = 0;
 
-	char* msg = "This is a message we will encrypt with AES!     ";
+    // Do key expansion
+    KeyExpansion(userkey, expandedKey);
+
+    // Copy Expanded Key
+    for (int i = 0; i < 176; i++)
+    {
+        _key[i] = expandedKey[i];
+    }
 
 	// Run Encryption on blocks
-	for (int i = 0; i < plaintext.length(); i += 16)
+	for (int i = 0; i < message.length(); i += 16)
 	{
 		FillBlock(plaintext, block, i);
-		EncryptAES(block, userkey);
+		EncryptAES(block, expandedKey);
 		CopyBack(plaintext, block, i);
 	}
 
@@ -35,14 +42,20 @@ void SoftwareAES::Encrypt(unsigned char * userkey, string message)
 	cout << endl;
 
 	// Print out cipher text to the console
-	for (int i = 0; i < plaintext.length(); i++)
+    int lineCount = 1;
+    cout << " " << hex << uppercase << (int)plaintext[0];
+	for (int i = 1; i < message.length(); i++)
 	{
-		cout << hex << uppercase << (int)plaintext[i] << " ";
-		if (i % 16 == 0)
+        printf(" %02X", plaintext[i]);
+        lineCount++;
+        //cout << hex << uppercase << (int)plaintext[i] << " ";
+		if (lineCount == 16)
 		{
-			//cout << endl;
+			cout << endl;
+            lineCount = 0;
 		}
 	}
+    cout << endl;
 }
 
 void SoftwareAES::Decrypt(unsigned char * userkey, string message)
@@ -54,20 +67,12 @@ void SoftwareAES::Decrypt(unsigned char * userkey, string message)
 void SoftwareAES::EncryptAES(unsigned char* message, unsigned char* key)
 {
 	unsigned char state[BLOCK_SIZE];
-	unsigned char expandedKey[176];
 	int numOfRounds = 9;
 
 	// Copy key into state
 	for (int i = 0; i < BLOCK_SIZE; i++)
 	{
 		state[i] = message[i];
-	}
-
-	KeyExpansion(key, expandedKey); // TODO: Move this outside Encrypt!!!!!!
-
-	for (int i = 0; i < 176; i++)
-	{
-		_key[i] = expandedKey[i];
 	}
 
 	AddRoundKey(state, key); // Initial Rounds
@@ -78,13 +83,13 @@ void SoftwareAES::EncryptAES(unsigned char* message, unsigned char* key)
 		SubBytes(state);
 		ShiftRows(state);
 		MixColumns(state);
-		AddRoundKey(state, expandedKey + (BLOCK_SIZE * (i + 1)));
+		AddRoundKey(state, key + (BLOCK_SIZE * (i + 1)));
 	}
 
 	// Final Round
 	SubBytes(state);
 	ShiftRows(state);
-	AddRoundKey(state, expandedKey + 160);
+	AddRoundKey(state, key + 160);
 
 	// B6 is the first hex
 	for (int i = 0; i < BLOCK_SIZE; i++)
@@ -247,7 +252,7 @@ void SoftwareAES::PadMessage(string &message)
 	}
 }
 
-void SoftwareAES::FillBlock(string & message, unsigned char * block, int index)
+void SoftwareAES::FillBlock(unsigned char* message, unsigned char * block, int index)
 {
 	for (int i = 0; i < BLOCK_SIZE; i++)
 	{
@@ -255,7 +260,7 @@ void SoftwareAES::FillBlock(string & message, unsigned char * block, int index)
 	}
 }
 
-void SoftwareAES::CopyBack(string & message, unsigned char * block, int index)
+void SoftwareAES::CopyBack(unsigned char* message, unsigned char * block, int index)
 {
 	for (int i = 0; i < BLOCK_SIZE; i++)
 	{

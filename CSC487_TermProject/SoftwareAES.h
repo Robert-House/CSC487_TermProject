@@ -31,8 +31,8 @@ private:
 	void AddRoundKey(unsigned char* state, unsigned char* roundKey);
 
 	void PadMessage(string &message);
-	void FillBlock(string &message, unsigned char* block, int index);
-	void CopyBack(string &message, unsigned char* block, int index);
+	void FillBlock(unsigned char*, unsigned char* block, int index);
+	void CopyBack(unsigned char* message, unsigned char* block, int index);
 
 	unsigned char _key[176];
 };
