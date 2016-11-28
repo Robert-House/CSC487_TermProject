@@ -37,7 +37,7 @@ void HardwareAES::Encrypt(unsigned char* userkey, string message)
 
 	for (int i = 0; i < message.length(); i++)
 	{
-		cout << (char)pt[i] << " ";
+		cout << (unsigned char)pt[i] << " ";
 	}
 }
 
@@ -171,22 +171,28 @@ void HardwareAES::DecryptAES(const unsigned char* in, unsigned char* out,
 
 	for (i = 0; i < length; i++) 
 	{ 
+		// Load block
 		temp = _mm_loadu_si128(&((__m128i*)in)[i]);
-		tkey = _mm_loadu_si128(&((__m128i*)key)[0]);
+		
+		// decryptKey[0] = encryptKey[numRounds]
+		tkey = _mm_loadu_si128(&((__m128i*)key)[numRounds]);
+		
+		// Add round key
 		temp = _mm_xor_si128(temp, tkey);
-		//temp = _mm_xor_si128(temp, ((__m128i*)key)[0]);
 
-		for (j = 1; j < numRounds; j++)
+		// for decryptRound 2-9
+		for (j = numRounds - 1; j > 0; j--)
 		{
 			tkey = _mm_loadu_si128(&((__m128i*)key)[j]);
+			tkey = _mm_aesimc_si128(tkey); // INVERSE COLUMNS!!!!!!
 			temp = _mm_aesdec_si128(temp, tkey);
-			//temp = _mm_aesdec_si128(temp, ((__m128i*)key)[j]);
 		}
 		
-		tkey = _mm_loadu_si128(&((__m128i*)key)[j]);
+		// Round 10 decryptKey[numRounds] = encryptKey[0]
+		tkey = _mm_loadu_si128(&((__m128i*)key)[0]);
 		temp = _mm_aesdeclast_si128(temp, tkey);
-		//temp = _mm_aesdeclast_si128(temp, ((__m128i*)key)[j]);
 		
+		// Write out block. PHEW, DONE!
 		_mm_storeu_si128(&((__m128i*)out)[i], temp);
 	}
 }
