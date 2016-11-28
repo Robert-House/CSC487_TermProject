@@ -48,7 +48,5 @@ private:
 
 	__m128i AES_128_ASSIST(__m128i temp1, __m128i temp2);
 
-    void padLength();
-
 	unsigned char _key[176];
 };

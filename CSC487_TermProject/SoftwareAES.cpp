@@ -12,7 +12,6 @@ SoftwareAES::~SoftwareAES()
 
 void SoftwareAES::Encrypt(unsigned char * userkey, string message)
 {
-	PadMessage(message);
 	unsigned char block[16];
     unsigned char expandedKey[176];
 
@@ -155,7 +154,7 @@ void SoftwareAES::SubBytes(unsigned char* state)
 	// Substitution
 	for (int i = 0; i < BLOCK_SIZE; i++)
 	{
-		state[i] = sBox[state[i]]; // TODO: Replace s with sBox
+		state[i] = sBox[state[i]];
 	}
 }
 
@@ -229,26 +228,47 @@ void SoftwareAES::MixColumns(unsigned char* state)
 	}
 }
 
+void SoftwareAES::InvMixColumns(unsigned char* state)
+{
+    unsigned char temp[BLOCK_SIZE];
+
+    // Col 1
+    temp[0] = (unsigned char)(GF14[state[0]] ^ GF11[state[1]] ^ GF13[state[2]] ^ GF9[state[3]]);
+    temp[1] = (unsigned char)(GF9[state[0]] ^ GF14[state[1]] ^ GF11[state[2]] ^ GF13[state[3]]);
+    temp[2] = (unsigned char)(GF13[state[0]] ^ GF9[state[1]] ^ GF14[state[2]] ^ GF11[state[3]]);
+    temp[3] = (unsigned char)(GF11[state[0]] ^ GF13[state[1]] ^ GF9[state[2]] ^ GF14[state[3]]);
+
+    // Col 2
+    temp[4] = (unsigned char)(GF14[state[4]] ^ GF11[state[5]] ^ GF13[state[6]] ^ GF9[state[7]]);
+    temp[5] = (unsigned char)(GF9[state[4]] ^ GF14[state[5]] ^ GF11[state[6]] ^ GF13[state[7]]);
+    temp[6] = (unsigned char)(GF13[state[4]] ^ GF9[state[5]] ^ GF14[state[6]] ^ GF11[state[7]]);
+    temp[7] = (unsigned char)(GF11[state[4]] ^ GF13[state[5]] ^ GF9[state[6]] ^ GF14[state[7]]);
+
+    // Col 3
+    temp[8] = (unsigned char)(GF14[state[8]] ^ GF11[state[9]] ^ GF13[state[10]] ^ GF9[state[11]]);
+    temp[9] = (unsigned char)(GF9[state[8]] ^ GF14[state[9]] ^ GF11[state[10]] ^ GF13[state[11]]);
+    temp[10] = (unsigned char)(GF13[state[8]] ^ GF9[state[9]] ^ GF14[state[10]] ^ GF11[state[11]]);
+    temp[11] = (unsigned char)(GF11[state[8]] ^ GF13[state[9]] ^ GF9[state[10]] ^ GF14[state[11]]);
+
+    // Col 4
+    temp[12] = (unsigned char)(GF14[state[12]] ^ GF11[state[13]] ^ GF13[state[14]] ^ GF9[state[15]]);
+    temp[13] = (unsigned char)(GF9[state[12]] ^ GF14[state[13]] ^ GF11[state[14]] ^ GF13[state[15]]);
+    temp[14] = (unsigned char)(GF13[state[12]] ^ GF9[state[13]] ^ GF14[state[14]] ^ GF11[state[15]]);
+    temp[15] = (unsigned char)(GF11[state[12]] ^ GF13[state[13]] ^ GF9[state[14]] ^ GF14[state[15]]);
+
+    // Copy back to state
+    for (int i = 0; i < BLOCK_SIZE; i++)
+    {
+        state[i] = temp[i];
+    }
+}
+
 void SoftwareAES::AddRoundKey(unsigned char* state, unsigned char* roundkey)
 {
 	for (int i = 0; i < BLOCK_SIZE; i++)
 	{
 		// XOR
 		state[i] ^= roundkey[i];
-	}
-}
-
-void SoftwareAES::PadMessage(string &message)
-{
-	int mod = message.size() % 16;
-
-	if (mod != 0)
-	{
-		// Pad Zeroes
-		for (int i = 16 - mod; i > 0; i--)
-		{
-			message = message + " ";
-		}
 	}
 }
 

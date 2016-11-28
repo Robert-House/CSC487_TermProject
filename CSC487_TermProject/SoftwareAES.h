@@ -16,7 +16,7 @@ public:
 	void Decrypt(unsigned char* userkey, string message);
 	unsigned char* GetKey() { return _key; };
 
-    static const int MAX_DATA_SIZE = 8192; // ~8k
+    static const int MAX_DATA_SIZE = 16777216; // ~16MB
 
 private:
 	static const int BLOCK_SIZE = 16;
@@ -28,9 +28,9 @@ private:
 	void SubBytes(unsigned char* state);
 	void ShiftRows(unsigned char* state);
 	void MixColumns(unsigned char* state);
+    void InvMixColumns(unsigned char* state);
 	void AddRoundKey(unsigned char* state, unsigned char* roundKey);
 
-	void PadMessage(string &message);
 	void FillBlock(unsigned char*, unsigned char* block, int index);
 	void CopyBack(unsigned char* message, unsigned char* block, int index);
 

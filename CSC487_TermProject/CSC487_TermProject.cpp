@@ -14,9 +14,16 @@
 
 using namespace std;
 
+void PadMessage(string &message);
+
 int main()
 {
-	string message = "This is a message we will encrypt with AES!     ";
+	string message = "This is a message we will encrypt with AES!";
+
+    for (int i = 0; i < 5; i++)
+    {
+        message = message + message;
+    }
 
 	// Control For testing purposes
 	unsigned char key[16] =
@@ -59,5 +66,19 @@ int main()
 	}*/
 
 	return 0;
+}
+
+void PadMessage(string &message)
+{
+    int mod = message.size() % 16;
+
+    if (mod != 0)
+    {
+        // Pad Zeroes
+        for (int i = 16 - mod; i > 0; i--)
+        {
+            message = message + " ";
+        }
+    }
 }
 
