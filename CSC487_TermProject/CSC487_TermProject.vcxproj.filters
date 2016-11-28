@@ -38,13 +38,13 @@
     <ClCompile Include="stdafx.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="CSC487_TermProject.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="HardwareAES.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="SoftwareAES.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="CSC487_TermProject.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

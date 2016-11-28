@@ -12,22 +12,32 @@ HardwareAES::~HardwareAES()
 
 void HardwareAES::Encrypt(unsigned char* userkey, string message)
 {
-	char key[16];
-	unsigned char* pt = (unsigned char*)"This is a message we will encrypt with AES!";
+	int numR = 10;
+	unsigned char key[176];
+	char* msg = "This is a message we will encrypt with AES!     ";;
+	unsigned char out[48];
+	unsigned char pt[48];
 	
-	KeyExpansion(userkey, (unsigned char*)key);
-	EncryptAES(pt, ciphertext, message.length(), key, 10);
+	KeyExpansion(userkey, key);
+	EncryptAES((unsigned char*)msg, out, message.length(), key, numR);
 
 	for (int i = 0; i < message.length(); i++)
 	{
-		cout << hex << uppercase << (int)ciphertext[i] << endl;
+		cout << hex << uppercase << (int)out[i] << " ";
 	}
 
-	DecryptAES(ciphertext, plaintext, message.length(), key, 10);
+	for (int i = 0; i < 176; i++)
+	{
+		_key[i] = key[i];
+	}
+
+	cout << endl;
+
+	DecryptAES(out, pt, message.length(), key, numR);
 
 	for (int i = 0; i < message.length(); i++)
 	{
-		//cout << plaintext[i] << endl;
+		cout << (char)pt[i] << " ";
 	}
 }
 
@@ -36,7 +46,7 @@ void HardwareAES::Decrypt()
 
 }
 
-inline __m128i AES_128_ASSIST(__m128i temp1, __m128i temp2)
+__m128i HardwareAES::AES_128_ASSIST(__m128i temp1, __m128i temp2)
 {
 	__m128i temp3;
 	temp2 = _mm_shuffle_epi32(temp2, 0xff);
@@ -100,9 +110,10 @@ void HardwareAES::KeyExpansion(const unsigned char* userkey, unsigned char* key)
 }
 
 void HardwareAES::EncryptAES(const unsigned char* in, unsigned char* out,
-	unsigned long length, const char* key, int numRounds)
+	unsigned long length, const unsigned char* key, int numRounds)
 {
 	__m128i temp;
+	__m128i tKey;
 	int i;
 	int j;
 
@@ -119,24 +130,33 @@ void HardwareAES::EncryptAES(const unsigned char* in, unsigned char* out,
 	// Encrypt
 	for (i = 0; i < length; i++)
 	{
+		// Round 1
 		temp = _mm_loadu_si128(&((__m128i*)in)[i]);
-		temp = _mm_xor_si128(temp, ((__m128i*)key)[0]);
+		tKey = _mm_loadu_si128(&((__m128i*)key)[0]);
 
+		// DO XOR
+		temp = _mm_xor_si128(temp, tKey);
+
+		// Rounds 2-10
 		for (j = 1; j < numRounds; j++)
 		{
-			temp = _mm_aesenc_si128(temp, ((__m128i*)key)[j]);
+			tKey = _mm_loadu_si128(&((__m128i*)key)[j]);
+			temp = _mm_aesenc_si128(temp, tKey);
+			//temp = _mm_aesenc_si128(temp, ((__m128i*)key)[j]);
 		}
 
 		// Last round
-		temp = _mm_aesenclast_si128(temp, ((__m128i*)key)[j]);
+		tKey = _mm_loadu_si128(&((__m128i*)key)[j]);
+		temp = _mm_aesenclast_si128(temp, tKey);
 		_mm_storeu_si128(&((__m128i*)out)[i], temp); // Write ciphertext
 	}
 }
 
 void HardwareAES::DecryptAES(const unsigned char* in, unsigned char* out,
-	unsigned long length, const char* key, int numRounds)
+	unsigned long length, const unsigned char* key, int numRounds)
 {
 	__m128i temp;
+	__m128i tkey;
 	int i;
 	int j;
 	// Divide data into 16 byte chunks
@@ -152,13 +172,20 @@ void HardwareAES::DecryptAES(const unsigned char* in, unsigned char* out,
 	for (i = 0; i < length; i++) 
 	{ 
 		temp = _mm_loadu_si128(&((__m128i*)in)[i]);
-		temp = _mm_xor_si128(temp, ((__m128i*)key)[0]);
+		tkey = _mm_loadu_si128(&((__m128i*)key)[0]);
+		temp = _mm_xor_si128(temp, tkey);
+		//temp = _mm_xor_si128(temp, ((__m128i*)key)[0]);
 
 		for (j = 1; j < numRounds; j++)
 		{
-			temp = _mm_aesdec_si128(temp, ((__m128i*)key)[j]);
+			tkey = _mm_loadu_si128(&((__m128i*)key)[j]);
+			temp = _mm_aesdec_si128(temp, tkey);
+			//temp = _mm_aesdec_si128(temp, ((__m128i*)key)[j]);
 		}
-		temp = _mm_aesdeclast_si128(temp, ((__m128i*)key)[j]);
+		
+		tkey = _mm_loadu_si128(&((__m128i*)key)[j]);
+		temp = _mm_aesdeclast_si128(temp, tkey);
+		//temp = _mm_aesdeclast_si128(temp, ((__m128i*)key)[j]);
 		
 		_mm_storeu_si128(&((__m128i*)out)[i], temp);
 	}

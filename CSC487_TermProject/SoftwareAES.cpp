@@ -14,6 +14,7 @@ void SoftwareAES::Encrypt(unsigned char * userkey, string message)
 {
 	string plaintext = message;
 	PadMessage(plaintext);
+	unsigned char block[16];
 
 	// Do some string copying stuff because I am stupid
 	//unsigned char* msg = new unsigned char(plaintext.length() + 1);
@@ -23,15 +24,24 @@ void SoftwareAES::Encrypt(unsigned char * userkey, string message)
 	char* msg = "This is a message we will encrypt with AES!     ";
 
 	// Run Encryption on blocks
-	for (int i = 0; i < plaintext.size(); i += 16)
+	for (int i = 0; i < plaintext.length(); i += 16)
 	{
-		EncryptAES((unsigned char*)msg + i, userkey);
+		FillBlock(plaintext, block, i);
+		EncryptAES(block, userkey);
+		CopyBack(plaintext, block, i);
 	}
+
+	cout << endl;
+	cout << endl;
 
 	// Print out cipher text to the console
 	for (int i = 0; i < plaintext.length(); i++)
 	{
-		cout << hex << uppercase << (int)msg[i] << " ";
+		cout << hex << uppercase << (int)plaintext[i] << " ";
+		if (i % 16 == 0)
+		{
+			//cout << endl;
+		}
 	}
 }
 
@@ -43,17 +53,23 @@ void SoftwareAES::Decrypt(unsigned char * userkey, string message)
 
 void SoftwareAES::EncryptAES(unsigned char* message, unsigned char* key)
 {
-	unsigned char state[NUM_BYTES];
+	unsigned char state[BLOCK_SIZE];
 	unsigned char expandedKey[176];
 	int numOfRounds = 9;
 
 	// Copy key into state
-	for (int i = 0; i < NUM_BYTES; i++)
+	for (int i = 0; i < BLOCK_SIZE; i++)
 	{
 		state[i] = message[i];
 	}
 
 	KeyExpansion(key, expandedKey); // TODO: Move this outside Encrypt!!!!!!
+
+	for (int i = 0; i < 176; i++)
+	{
+		_key[i] = expandedKey[i];
+	}
+
 	AddRoundKey(state, key); // Initial Rounds
 
 	// Rounds
@@ -62,7 +78,7 @@ void SoftwareAES::EncryptAES(unsigned char* message, unsigned char* key)
 		SubBytes(state);
 		ShiftRows(state);
 		MixColumns(state);
-		AddRoundKey(state, expandedKey + (NUM_BYTES * (i + 1)));
+		AddRoundKey(state, expandedKey + (BLOCK_SIZE * (i + 1)));
 	}
 
 	// Final Round
@@ -71,7 +87,7 @@ void SoftwareAES::EncryptAES(unsigned char* message, unsigned char* key)
 	AddRoundKey(state, expandedKey + 160);
 
 	// B6 is the first hex
-	for (int i = 0; i < NUM_BYTES; i++)
+	for (int i = 0; i < BLOCK_SIZE; i++)
 	{
 		message[i] = state[i];
 	}
@@ -84,7 +100,7 @@ void SoftwareAES::KeyExpansion(unsigned char* inputKey, unsigned char* expandedK
 	unsigned char temp[4];
 
 	// First 16 bytes are the original key
-	for (int i = 0; i < NUM_BYTES; i++)
+	for (int i = 0; i < BLOCK_SIZE; i++)
 	{
 		expandedKeys[i] = inputKey[i];
 	}
@@ -132,7 +148,7 @@ void SoftwareAES::KeyExpansionCore(unsigned char* in, unsigned char i)
 void SoftwareAES::SubBytes(unsigned char* state)
 {
 	// Substitution
-	for (int i = 0; i < NUM_BYTES; i++)
+	for (int i = 0; i < BLOCK_SIZE; i++)
 	{
 		state[i] = sBox[state[i]]; // TODO: Replace s with sBox
 	}
@@ -140,7 +156,7 @@ void SoftwareAES::SubBytes(unsigned char* state)
 
 void SoftwareAES::ShiftRows(unsigned char* state)
 {
-	unsigned char temp[NUM_BYTES];
+	unsigned char temp[BLOCK_SIZE];
 
 	// Col 1
 	temp[0] = state[0];
@@ -167,7 +183,7 @@ void SoftwareAES::ShiftRows(unsigned char* state)
 	temp[15] = state[11];
 
 	// Copy back to state
-	for (int i = 0; i < NUM_BYTES; i++)
+	for (int i = 0; i < BLOCK_SIZE; i++)
 	{
 		state[i] = temp[i];
 	}
@@ -175,7 +191,7 @@ void SoftwareAES::ShiftRows(unsigned char* state)
 
 void SoftwareAES::MixColumns(unsigned char* state)
 {
-	unsigned char temp[NUM_BYTES];
+	unsigned char temp[BLOCK_SIZE];
 
 	// Col 1
 	temp[0] = (unsigned char)(GF2[state[0]] ^ GF3[state[1]] ^ state[2] ^ state[3]);
@@ -202,7 +218,7 @@ void SoftwareAES::MixColumns(unsigned char* state)
 	temp[15] = (unsigned char)(GF3[state[12]] ^ state[13] ^ state[14] ^ GF2[state[15]]);
 
 	// Copy back to state
-	for (int i = 0; i < NUM_BYTES; i++)
+	for (int i = 0; i < BLOCK_SIZE; i++)
 	{
 		state[i] = temp[i];
 	}
@@ -210,7 +226,7 @@ void SoftwareAES::MixColumns(unsigned char* state)
 
 void SoftwareAES::AddRoundKey(unsigned char* state, unsigned char* roundkey)
 {
-	for (int i = 0; i < NUM_BYTES; i++)
+	for (int i = 0; i < BLOCK_SIZE; i++)
 	{
 		// XOR
 		state[i] ^= roundkey[i];
@@ -228,5 +244,21 @@ void SoftwareAES::PadMessage(string &message)
 		{
 			message = message + " ";
 		}
+	}
+}
+
+void SoftwareAES::FillBlock(string & message, unsigned char * block, int index)
+{
+	for (int i = 0; i < BLOCK_SIZE; i++)
+	{
+		block[i] = message[i + index];
+	}
+}
+
+void SoftwareAES::CopyBack(string & message, unsigned char * block, int index)
+{
+	for (int i = 0; i < BLOCK_SIZE; i++)
+	{
+		message[i + index] = block[i];
 	}
 }

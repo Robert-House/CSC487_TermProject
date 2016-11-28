@@ -14,9 +14,10 @@ public:
 
 	void Encrypt(unsigned char* userkey, string message);
 	void Decrypt(unsigned char* userkey, string message);
+	unsigned char* GetKey() { return _key; };
 
 private:
-	static const int NUM_BYTES = 16;
+	static const int BLOCK_SIZE = 16;
 
 	void EncryptAES(unsigned char* message, unsigned char* key);
 	void KeyExpansion(unsigned char* inputKey, unsigned char* expandedKeys);
@@ -28,4 +29,8 @@ private:
 	void AddRoundKey(unsigned char* state, unsigned char* roundKey);
 
 	void PadMessage(string &message);
+	void FillBlock(string &message, unsigned char* block, int index);
+	void CopyBack(string &message, unsigned char* block, int index);
+
+	unsigned char _key[176];
 };
