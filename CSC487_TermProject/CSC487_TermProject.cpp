@@ -20,7 +20,9 @@ int main()
 {
 	string message = "This is a message we will encrypt with AES!";
 
-    for (int i = 0; i < 5; i++)
+    PadMessage(message);
+
+    for (int i = 0; i < 6; i++)
     {
         message = message + message;
     }
@@ -51,8 +53,13 @@ int main()
 	HardwareAES* hwtest = new HardwareAES();
 	SoftwareAES* swtest = new SoftwareAES();
 
-	hwtest->Encrypt(key, message);
-	swtest->Encrypt(key, message);
+	hwtest->Encrypt(gKey, message);
+	swtest->Encrypt(gKey, message);
+
+    cout << "Hardware Elapsed Time: " << hwtest->_time << " microseconds" << endl;
+    cout << "Software Elapsed Time: " << swtest->_time << " microseconds" << endl;
+
+    cout << "Speedup Ratio: " << swtest->_time / hwtest->_time << endl;
 
 	/*testKey = hwtest->GetKey();
 	testKey2 = swtest->GetKey();

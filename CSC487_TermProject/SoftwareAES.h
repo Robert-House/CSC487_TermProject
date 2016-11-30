@@ -2,6 +2,8 @@
 
 #include <iostream>
 #include <string>
+#include <chrono>
+#include <time.h>
 #include "LookupTables.h"
 
 using namespace std;
@@ -16,7 +18,8 @@ public:
 	void Decrypt(unsigned char* userkey, string message);
 	unsigned char* GetKey() { return _key; };
 
-    static const int MAX_DATA_SIZE = 16777216; // ~16MB
+    static const int MAX_DATA_SIZE = 8192; // ~16MB
+    double _time = 0;
 
 private:
 	static const int BLOCK_SIZE = 16;
@@ -24,6 +27,7 @@ private:
 	void EncryptAES(unsigned char* message, unsigned char* key);
 	void KeyExpansion(unsigned char* inputKey, unsigned char* expandedKeys);
 	void KeyExpansionCore(unsigned char* in, unsigned char i);
+    void InverseKeyExpansion(unsigned char* in, unsigned char* out);
 
 	void SubBytes(unsigned char* state);
 	void ShiftRows(unsigned char* state);

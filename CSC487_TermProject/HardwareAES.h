@@ -18,6 +18,8 @@
 
 #include <iostream>
 #include "wmmintrin.h"
+#include <chrono>
+#include <ctime>
 
 using namespace std;
 
@@ -35,7 +37,8 @@ public:
 	void Decrypt(unsigned char* userkey, string ciphertext);
 	unsigned char* GetKey() { return _key; };
 
-    static const int MAX_DATA_SIZE = 8192; // ~8k
+    static const int MAX_DATA_SIZE = 8192; // ~16M
+    double _time = 0;
 
 private:
 	void KeyExpansion(const unsigned char* userkey, unsigned char* key);

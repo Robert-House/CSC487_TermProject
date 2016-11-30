@@ -29,31 +29,43 @@ void SoftwareAES::Encrypt(unsigned char * userkey, string message)
         _key[i] = expandedKey[i];
     }
 
-	// Run Encryption on blocks
+    // Chrono Stuff
+    chrono::time_point<chrono::system_clock> start, end;
+
+    start = chrono::system_clock::now();
+	
+    // Run Encryption on blocks
 	for (int i = 0; i < message.length(); i += 16)
 	{
 		FillBlock(plaintext, block, i);
 		EncryptAES(block, expandedKey);
 		CopyBack(plaintext, block, i);
 	}
+    end = chrono::system_clock::now();
 
 	cout << endl;
 	cout << endl;
 
-	// Print out cipher text to the console
-    int lineCount = 1;
-    cout << " " << hex << uppercase << (int)plaintext[0];
-	for (int i = 1; i < message.length(); i++)
-	{
-        printf(" %02X", plaintext[i]);
-        lineCount++;
-        //cout << hex << uppercase << (int)plaintext[i] << " ";
-		if (lineCount == 16)
-		{
-			cout << endl;
-            lineCount = 0;
-		}
-	}
+    chrono::duration<double, std::micro> elapsed_seconds = end - start;
+    time_t end_time = chrono::system_clock::to_time_t(end);
+    _time = elapsed_seconds.count();
+
+	//// Print out cipher text to the console
+ //   int lineCount = 1;
+ //   cout << " " << hex << uppercase << (int)plaintext[0];
+	//for (int i = 1; i < message.length(); i++)
+	//{
+ //       printf(" %02X", plaintext[i]);
+ //       lineCount++;
+ //       //cout << hex << uppercase << (int)plaintext[i] << " ";
+	//	if (lineCount == 16)
+	//	{
+	//		cout << endl;
+ //           lineCount = 0;
+	//	}
+	//}
+
+    // Print Plaintext
     cout << endl;
 }
 

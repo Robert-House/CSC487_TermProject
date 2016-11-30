@@ -34,6 +34,9 @@ void HardwareAES::Encrypt(unsigned char* userkey, string message)
 	int numR = 10;
 	unsigned char key[176];
 
+    // Chrono Stuff
+    chrono::time_point<chrono::system_clock> start, end;
+
     // Do some string copying stuff because I am stupid
     unsigned char plaintext[MAX_DATA_SIZE];
     unsigned char ciphertext[MAX_DATA_SIZE];
@@ -43,7 +46,11 @@ void HardwareAES::Encrypt(unsigned char* userkey, string message)
     plaintext[sizeof(plaintext) - 1] = 0;
 	
 	KeyExpansion(userkey, key);
+
+    // Measure Time
+    start = chrono::system_clock::now();
 	EncryptAES(plaintext, ciphertext, message.length(), key, numR);
+    end = chrono::system_clock::now();
 
     // Print out cipher text to the console
     int lineCount = 1;
@@ -53,7 +60,7 @@ void HardwareAES::Encrypt(unsigned char* userkey, string message)
         printf(" %02X", ciphertext[i]);
         lineCount++;
         //cout << hex << uppercase << (int)plaintext[i] << " ";
-        if (lineCount == 16)
+        if (lineCount == 64)
         {
             cout << endl;
             lineCount = 0;
@@ -73,6 +80,13 @@ void HardwareAES::Encrypt(unsigned char* userkey, string message)
 	{
 		cout << dPlainText[i] << " ";
 	}
+
+    cout << endl;
+    chrono::duration<double, std::micro> elapsed_seconds = end - start;
+    time_t end_time = chrono::system_clock::to_time_t(end);
+    //cout << elapsed_seconds.count();
+
+    _time = elapsed_seconds.count();
 }
 
 void HardwareAES::Decrypt(unsigned char* userkey, string ciphertext)
